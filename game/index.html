@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>十點的發表會</title>
+<style>
+:root{
+  --bg:#17142b; --bg2:#201c3a; --card:#262147; --line:rgba(255,255,255,.12);
+  --ink:#F3EFFF; --dim:#B9B2D6; --dimmer:#8079a3; --gold:#F1C86B; --green:#8FD6A8; --blue:#8EC5F0; --red:#E99A9A;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.8;
+  background-image:radial-gradient(circle at 50% 0%,#2a2350 0%,var(--bg) 60%);min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding:22px 16px 60px}
+.screen{display:none}.screen.on{display:block;animation:fade .45s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1,h2,.big{font-family:var(--serif)}
+h2{font-size:1.1rem;color:var(--gold);margin:22px 0 10px;letter-spacing:.06em}
+em{color:var(--gold);font-style:normal}
+.kicker{font-size:.78rem;letter-spacing:.25em;color:var(--dimmer)}
+.big{font-size:1.9rem;font-weight:700;line-height:1.4}
+.intro p{color:var(--dim);margin:.4em 0}
+.intro .blk{margin:26px 0;padding-left:14px;border-left:2px solid var(--line)}
+.intro .q{font-family:var(--serif);font-size:1.15rem;color:var(--gold);margin:14px 0}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.btn{font:inherit;font-weight:700;background:var(--gold);color:#2a2040;border:0;border-radius:999px;
+  padding:11px 30px;cursor:pointer;letter-spacing:.1em;box-shadow:0 4px 14px rgba(241,200,107,.25)}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line);box-shadow:none}
+/* HUD */
+.hud{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:14px;padding:8px 14px;flex-wrap:wrap}
+.hud .meta{flex:1;min-width:140px}
+.loopno{font-family:var(--serif);font-weight:700}
+.hud .time{font-size:.85rem;color:var(--dim)}
+.stat-s{font-size:.82rem;color:var(--dim);display:flex;align-items:center;gap:6px}
+.pips i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid var(--dim);margin-left:3px}
+.pips i.on{background:var(--red);border-color:var(--red)}
+/* map */
+.map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;padding:12px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.15)}
+.room{position:relative;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:12px 4px 8px;cursor:pointer;text-align:center;transition:.15s}
+.room:hover{border-color:rgba(241,200,107,.5)}
+.room .ri{font-size:1.7rem;line-height:1.2}
+.room .rn{font-size:.9rem;letter-spacing:.08em}
+.room.used{opacity:.45}
+.room.sel{border:2px solid var(--gold);background:#352d52}
+.room .dot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.room.hidden{visibility:hidden}
+.sel-panel{margin-top:14px;min-height:70px}
+.selhint{color:var(--dimmer);text-align:center;padding:12px}
+.selname{font-family:var(--serif);font-weight:700;margin-bottom:8px}
+.acts{display:grid;gap:8px}
+.act{font:inherit;color:var(--ink);text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.act:hover:not(:disabled){border-color:var(--gold)}
+.act:disabled{opacity:.35;cursor:not-allowed}
+.act .cost{font-size:.75rem;color:#2a2040;background:var(--gold);border-radius:6px;padding:1px 8px;white-space:nowrap}
+.act.fix .cost{background:var(--green)}
+.act.calm .cost{background:var(--blue)}
+.act.seen .cost{background:transparent;color:var(--dimmer);border:1px solid var(--line)}
+.act.seen .an{color:var(--dim)}
+/* scene */
+.scene{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:22px 20px}
+.scene .time{font-size:.8rem;color:var(--dimmer);letter-spacing:.2em;margin-bottom:8px}
+.scene .txt{font-family:var(--serif);font-size:1.08rem;line-height:2}
+.scene.replay{opacity:.8;border-style:dashed}
+.scene.secret{border-color:var(--gold);box-shadow:0 0 24px rgba(241,200,107,.15)}
+.center{text-align:center}
+.files{display:grid;gap:8px}
+.file{background:#2c2550;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:8px 12px}
+.file.new{animation:glow 1.6s ease}
+@keyframes glow{0%{box-shadow:0 0 0 rgba(241,200,107,0)}40%{box-shadow:0 0 22px rgba(241,200,107,.45)}100%{box-shadow:none}}
+.fno{font-size:.75rem;color:var(--gold);letter-spacing:.15em}
+.ft{font-size:.92rem}
+/* report */
+.report{margin-top:14px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.rh{font-size:.8rem;color:var(--dimmer);letter-spacing:.2em;margin-bottom:6px}
+.inc{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.inc:first-of-type{border-top:0}
+.inc .ii{width:1.6em;text-align:center}
+.inc.fixed .it{color:var(--green)}
+/* choices */
+.choices{display:grid;gap:10px;margin-top:16px}
+.ch{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:13px 16px;cursor:pointer;text-align:left}
+.ch:hover{border-color:var(--gold)}
+/* ending */
+.endwrap{text-align:center;margin-top:20px}
+.panel{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.panel h2{margin-top:0}
+.solid{margin:.6em 0}
+.msgs{display:grid;gap:8px}
+.msg{display:flex;gap:10px;align-items:flex-start}
+.who{flex:0 0 5.5em;font-size:.8rem;color:var(--dimmer);padding-top:3px}
+.mx{background:#2f2856;border-radius:12px;padding:6px 12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
+.sv{font-family:var(--serif);font-size:1.5rem;font-weight:700}
+.sl{font-size:.75rem;color:var(--dim)}
+.stat.g .sv{color:var(--gold)}.stat.b .sv{color:var(--blue)}.stat.r .sv{color:var(--red)}
+.qrow{padding:8px 0;border-top:1px solid var(--line)}
+.ql{font-size:.8rem;color:var(--dimmer)}
+.qa .tag{display:inline-block;font-size:.72rem;border-radius:6px;padding:0 6px;margin-right:6px}
+.tag.g{background:rgba(143,214,168,.2);color:var(--green)}
+.tag.e{background:rgba(142,197,240,.2);color:var(--blue)}
+.tag.f{background:rgba(233,154,154,.2);color:var(--red)}
+.legend{font-size:.82rem;color:var(--dim);margin:6px 0 4px}
+.secretp{border-color:rgba(241,200,107,.55)}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.badge{text-align:center;border:1px dashed var(--line);border-radius:12px;padding:10px 4px;opacity:.5}
+.badge.got{opacity:1;border:1px solid var(--gold)}
+.bi{font-size:1.5rem}.bn{font-size:.78rem}
+.ver{text-align:center;color:var(--dimmer);font-size:.7rem;margin-top:40px}
+#errbar{display:none;position:fixed;left:0;right:0;top:0;background:#a33;color:#fff;padding:8px 14px;font-size:.85rem;z-index:99}
+@media (max-width:480px){
+  .big{font-size:1.5rem}
+  .room .ri{font-size:1.4rem}.room .rn{font-size:.8rem}
+  .stats,.badges{grid-template-columns:repeat(2,1fr)}
+  .scene{padding:18px 14px}
+}
+</style>
+</head>
+<body>
+<div id="errbar"></div>
+<div class="wrap">
+
+<!-- 開場 -->
+<div class="screen on" id="s-intro">
+  <div class="intro">
+    <div class="kicker">獨立研究成果發表會 · 10:00</div>
+    <div class="big" style="margin-top:8px;">十點的發表會</div>
+    <div class="blk">
+      <p>今天是資優班的獨立研究發表會。十點整，你要站在視聽教室前面，對著家長、老師和外校評審，報告你研究了一整學期的題目：〈哪一種葉子的水分蒸散最快？〉</p>
+      <p>大家都說：「你一定沒問題的，你是資優班的嘛。」</p>
+    </div>
+    <div class="blk">
+      <p>你上台了。</p>
+      <p>投影片打不開，數據被評審問倒，小米站在旁邊一句話都沒說。</p>
+      <p>走回座位的時候，你聽見後面有人小聲說：「資優班的也不過這樣。」</p>
+      <p>你心裡有一句話一直在轉：</p>
+      <div class="q">如果我不是最好的，那我還是資優生嗎？</div>
+    </div>
+    <div class="blk">
+      <p>下課鐘響了。你抬起頭——</p>
+      <p>牆上的鐘是早上七點四十分。書包還在背上，投影片還沒開，小米還沒到。</p>
+      <p>在你好好地把這一天走完以前，它會一直繞回來。</p>
+      <p style="margin-top:14px;">每一次繞回來，東西都會回到原位。<br><em>只有你弄清楚的事，會跟著你一起繞。</em></p>
+    </div>
+    <div class="row"><button class="btn" onclick="startGame()">睜開眼睛</button></div>
+  </div>
+</div>
+
+<div class="screen" id="s-day"><div id="day"></div></div>
+<div class="screen" id="s-scene"><div id="scene"></div></div>
+<div class="screen" id="s-show"><div id="show"></div></div>
+<div class="screen" id="s-ask"><div id="ask"></div></div>
+<div class="screen" id="s-end"><div id="end"></div></div>
+
+<div class="ver">十點的發表會 v1.0　·　靈感來自失敗博物館《十一點的鐘聲》</div>
+</div>
+
+<script>
+/* ═══ 錯誤橫幅：出錯時直接顯示在畫面上，方便老師回報 ═══ */
+window.onerror = function(msg, src, line){
+  var b = document.getElementById("errbar");
+  b.style.display = "block";
+  b.textContent = "⚠️ 程式發生錯誤（v1.0）：" + msg + "（第 " + line + " 行）";
+};
+
+/* ═══════════ 設定區 ═══════════ */
+const SLOTS = 6;
+const TIMES = ["07:40","08:00","08:20","08:40","09:00","09:20"];
+
+/* 情報卡：唯一帶得過循環的東西 */
+const FILES = {
+  f_file: {no:"情報 01", t:"家裡的投影片是新版格式，學校電腦是舊版軟體，打不開。"},
+  f_plan: {no:"情報 02", t:"分工表上，小米那一欄的內容，上週被你整個重做了。"},
+  f_mi:   {no:"情報 03", t:"小米說：「反正我做的你都會改掉。」"},
+  f_q:    {no:"情報 04", t:"評審每年都會問「研究的限制」，答得出來的人反而加分。"},
+  f_data: {no:"情報 05", t:"第三週有一筆數據很怪，你偷偷把它刪掉了，因為圖表會變醜。"},
+  f_label:{no:"情報 06", t:"有人覺得資優班「很愛炫耀」。但阿凱其實很想來看你的實驗。"},
+  f_crack:{no:"？？？ 01", t:"這個早上不是完全一樣的。每一輪都有一點點不同，只是你以前沒在看。"},
+  f_still:{no:"？？？ 02", t:"什麼都不做的時候，你反而聽得到整個學校在發生什麼事。"},
+  f_map:  {no:"？？？ 03", t:"這個學校的每個角落你都去過了。哪裡有什麼，你比誰都清楚。"},
+  f_calm: {no:"？？？ 04", t:"心裡太滿的時候，先讓它降下來，比再多做一件事有用。"}
+};
+const MAIN_FILES = ["f_file","f_plan","f_mi","f_q","f_data","f_label"];
+
+/* 地點：依 4×3 排列順序 */
+const PLACES = [
+  {id:"board", n:"班級白板", ic:"📋", acts:[
+    {id:"a_board", n:"看一下今天的白板", cost:1, junk:true, board:true,
+     say:"值日生、午餐菜單、「今天發表會加油！」。沒什麼特別的。"}]},
+  {id:"av", n:"視聽教室", ic:"🎤", acts:[
+    {id:"a_rehearse", n:"對著空教室完整演練一次", cost:2, give:["f_file","f_data"],
+     say:"你把隨身碟插上講桌電腦，畫面跳出「無法開啟此檔案」。你只好用講的，講到第三週的圖表時突然卡住——你想起來了，那裡本來有一個點，是你自己擦掉的。"},
+    {id:"a_look", n:"站在講台上往下看", cost:1, calm:1,
+     say:"椅子還是空的。你站在講台上往下看，發現第一排離你沒有想像中那麼遠。你的肩膀鬆了一點。"}]},
+  {id:"comp", n:"電腦教室", ic:"💻", acts:[
+    {id:"a_test", n:"先開檔測試一次", cost:1, give:["f_file"],
+     say:"你把隨身碟插上去，畫面跳出一個灰色的框：「無法開啟此檔案」。你盯著它看了五秒。"},
+    {id:"x_pdf", n:"轉存成 PDF 備用", cost:1, need:"f_file", fix:"i_file",
+     say:"你多存了一份 PDF。這次點兩下，第一張投影片就出來了。"}]},
+
+  {id:"sci", n:"自然教室", ic:"🔬", acts:[
+    {id:"a_notes", n:"重看實驗記錄本", cost:1, give:["f_data"],
+     say:"你翻到第三週。那一天的數字比別天高了快一倍，旁邊有你用鉛筆打的叉。你想起來了——是你把它擦掉的。"},
+    {id:"x_data", n:"把那筆數據放回去，標上問號", cost:1, need:"f_data", fix:"i_data",
+     say:"你在圖表上把那個點加回去，旁邊寫：「可能是那天開了電風扇？還不確定。」<br>圖表變醜了一點，但它是真的。"}]},
+  {id:"hall", n:"走廊", ic:"🚪", acts:[
+    {id:"a_mi", n:"找小米聊聊", cost:1, need:"f_plan", give:["f_mi"],
+     needSay:"小米說：「我準備好了啦。」你也覺得應該沒問題，就走開了。",
+     say:"你想起分工表的事，就去找小米。她靠在窗邊，過了很久才說：「反正我做的你都會改掉，那我做了幹嘛？」"},
+    {id:"x_mi", n:"跟小米說：結論那頁交給你，我不改", cost:1, need:"f_mi", fix:"i_mi",
+     say:"你說完，小米愣了一下，然後把她自己寫的版本從書包裡拿出來。<br>其實寫得很好。"}]},
+  {id:"class", n:"普通班教室", ic:"🏫", acts:[
+    {id:"a_kai", n:"去找阿凱", cost:1, give:["f_label"],
+     say:"阿凱是你三年級的同學。他小聲說：「有人說你們資優班很愛炫耀……可是我其實很想看你的葉子實驗欸。」"},
+    {id:"x_kai", n:"邀阿凱坐第一排", cost:1, need:"f_label", fix:"i_label",
+     say:"阿凱說：「真的可以喔？」他笑得比你還緊張。"}]},
+
+  {id:"gifted", n:"資優班教室", ic:"📚", acts:[
+    {id:"a_plan", n:"看小組分工表", cost:1, give:["f_plan"],
+     say:"分工表貼在白板旁邊。小米那一欄寫著「結論」，可是你記得那頁上週是你重做的——整頁。"},
+    {id:"a_teacher", n:"問林老師評審會問什麼", cost:1, give:["f_q"],
+     say:"林老師邊泡茶邊說：「評審最愛問『你的研究有什麼限制』。說得出來的人，代表真的懂自己在做什麼。」"}]},
+  {id:"lib", n:"圖書館", ic:"📖", acts:[
+    {id:"a_book", n:"翻去年的發表會手冊", cost:1, give:["f_q"],
+     say:"你在書架最下層找到去年的手冊。每一份評審意見表上，都印著同一題：「請說明本研究的限制」。"},
+    {id:"x_unknown", n:"寫下三件我還不知道的事", cost:1, need:"f_q", fix:"i_q",
+     say:"你寫到第三件的時候，突然覺得這些問題好有趣。<br>原來「不知道」也可以是下一個題目。"}]},
+  {id:"coun", n:"輔導室", ic:"🌿", acts:[
+    {id:"x_calm", n:"坐在懶骨頭上五分鐘", cost:1, calm:3,
+     say:"輔導老師沒有問你什麼，只是把一盒衛生紙放在旁邊。五分鐘之後，胸口那團東西鬆開了一點。"}]},
+
+  {id:"play", n:"操場", ic:"🛝", layer2:true, acts:[
+    {id:"a_swing", n:"去盪一下鞦韆", cost:1, junk:true, say:"風吹過來，很舒服。然後就沒有然後了。"}]},
+  {id:"shop", n:"合作社", ic:"🍙", layer2:true, acts:[
+    {id:"a_shop", n:"買一個飯糰", cost:1, junk:true, say:"你吃了半個飯糰。很好吃，但跟發表會沒什麼關係。"}]},
+  {id:"stairs", n:"樓梯間", ic:"🪜", layer2:true, acts:[
+    {id:"a_books", n:"幫一年級搬作業簿", cost:1, junk:true, say:"你搬了兩疊作業簿。一年級的小朋友說謝謝，聲音很大。"}]}
+];
+
+/* 發表時的事故 */
+const INCIDENTS = [
+  {id:"i_file",  file:"f_file",  ic:"💻", t:"投影片在學校電腦打不開，你站著等了一分鐘。"},
+  {id:"i_mi",    file:"f_mi",    ic:"🤐", t:"輪到小米報告結論，她搖搖頭說：「你講就好。」"},
+  {id:"i_q",     file:"f_q",     ic:"❓", t:"評審問：「你的研究有什麼限制？」你愣住了，覺得承認就輸了。"},
+  {id:"i_data",  file:"f_data",  ic:"📉", t:"評審指著圖表問：「第三週的數據怎麼不見了？」"},
+  {id:"i_label", file:"f_label", ic:"👀", t:"你看到後排有人在笑，聲音越講越小。"}
+];
+const BLANK = {id:"i_blank", ic:"😶", t:"你張開嘴，腦袋一片空白。（心裡太滿了）"};
+
+const VAGUE = [
+  "你不太記得中間發生了什麼，只記得那一張打不開的投影片好亮。",
+  "你站在台上，感覺有一個問題正在朝你飛過來。<br>你來不及接住它。",
+  "台下有一段安靜，安靜得你聽見自己的心跳。<br>然後你聽見下課鐘。",
+  "後來你一直在想，如果那個早上你去過某個地方，會不會不一樣。"
+];
+
+/* 問題：t = g 往前找問題／e 承認感受／f 固定歸因或怪罪（只有 f 加壓力）
+   畫面上不顯示類型，選項順序每次打亂 */
+const QUESTIONS = [
+  {q:"又回到七點四十了。你心裡第一個念頭是什麼？", o:[
+    {t:"我果然不夠聰明，資優班是被誤會選進來的", k:"f"},
+    {t:"好丟臉，我不想再上台了", k:"e"},
+    {t:"至少我知道哪一段會出事了", k:"g"}]},
+  {q:"這一輪你打算怎麼過？", o:[
+    {t:"全部自己來，別人做的都不可靠", k:"f"},
+    {t:"去上一輪沒去過的地方看看", k:"g"},
+    {t:"我好累，可是還是想再試一次", k:"e"}]},
+  {q:"如果重來十次還是失敗，那代表什麼？", o:[
+    {t:"代表我根本不是資優生", k:"f"},
+    {t:"代表我還沒找到問題在哪", k:"g"},
+    {t:"代表這件事真的很難，難到我會難過", k:"e"}]},
+  {q:"你覺得那些看起來「一下就會」的人，跟你差在哪？", o:[
+    {t:"他們比我聰明，我只是假裝很會", k:"f"},
+    {t:"他們也卡過，只是你沒看到", k:"g"},
+    {t:"不知道，但想到這個我會有點羨慕", k:"e"}]},
+  {q:"小米問你：「為什麼你都要改我的東西？」你會說？", o:[
+    {t:"因為你做得不夠好", k:"f"},
+    {t:"因為我很怕出錯，但我可以試著不改", k:"g"},
+    {t:"我不知道，我只是很緊張", k:"e"}]},
+  {q:"你已經有情報了，這一輪還是搞砸了。你怎麼看？", o:[
+    {t:"看看哪一條還沒用上", k:"g"},
+    {t:"我連有答案都做不好，更慘", k:"f"},
+    {t:"好挫折，我需要先休息一下", k:"e"}]},
+  {q:"評審如果問到你不會的問題，你要怎麼說？", o:[
+    {t:"隨便編一個，不能讓人知道我不會", k:"f"},
+    {t:"「這個我還不確定，可以是我下一個研究的問題。」", k:"g"},
+    {t:"我會很怕，但我想試著說實話", k:"e"}]},
+  {q:"如果大家不再叫你「資優生」，你覺得自己還剩下什麼？", o:[
+    {t:"什麼都不剩了", k:"f"},
+    {t:"我還是很喜歡問問題、喜歡研究", k:"g"},
+    {t:"我不知道，這個問題讓我有點慌", k:"e"}]}
+];
+const FINAL_Q = {q:"燈亮之前，你要對自己說什麼？", final:true, o:[
+  {t:"我把能準備的都準備好了", k:"g"},
+  {t:"我還是很緊張，但緊張也沒關係", k:"e"},
+  {t:"一定要完美，不能出錯", k:"f"}]};
+
+/* ═══════════ 遊戲狀態 ═══════════ */
+const G = {loop:0, slots:SLOTS, files:new Set(), fixed:new Set(), stress:0,
+  done:[], blocked:[], gained:0, junk:0, board:0, sel:null, answers:[], perfectWord:false,
+  visited:new Set(), hitPeak:false, sA:false, sB:false, sC:false, sD:false, curQ:null};
+
+function $(id){ return document.getElementById(id); }
+function go(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  $(id).classList.add("on");
+  window.scrollTo({top:0});
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function startGame(){ G.loop=0; newLoop(); }
+function newLoop(){
+  G.loop++; G.slots=SLOTS; G.fixed=new Set(); G.done=[]; G.blocked=[]; G.gained=0; G.sel=null;
+  renderDay();
+}
+
+/* ── HUD ── */
+function clockSvg(){
+  const p=(SLOTS-G.slots)/SLOTS, R=24, C=2*Math.PI*R;
+  return `<svg viewBox="0 0 60 60" width="54" height="54" aria-label="剩下 ${G.slots} 格時間">
+    <circle cx="30" cy="30" r="${R}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="4"/>
+    <circle cx="30" cy="30" r="${R}" fill="none" stroke="#F1C86B" stroke-width="4"
+      stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+    <text x="30" y="35" font-size="15" fill="#F3EFFF" text-anchor="middle" font-weight="700">${G.slots}</text></svg>`;
+}
+function hud(){
+  return `<div class="hud">
+    <div>${clockSvg()}</div>
+    <div class="meta"><div class="loopno">第 ${G.loop} 次循環</div>
+      <div class="time">${G.slots>0?TIMES[SLOTS-G.slots]:"09:40"}　·　十點發表</div></div>
+    <div class="stat-s">壓力<span class="pips">${[0,1,2].map(i=>`<i class="${i<G.stress?"on":""}"></i>`).join("")}</span></div>
+    <div class="stat-s">情報 <b style="color:var(--gold)">${G.files.size}</b></div>
+  </div>`;
+}
+function filesHtml(){
+  if(!G.files.size) return "";
+  return `<h2>你知道的事</h2><div class="files">${[...G.files].map(k=>
+    `<div class="file"><div class="fno">${FILES[k].no}</div><div class="ft">${FILES[k].t}</div></div>`).join("")}</div>`;
+}
+
+/* ── 地圖 ── */
+function placeActs(pl){ return pl.acts.filter(a=>!(a.fix && !G.files.has(a.need))); }
+function actState(a){
+  if(G.done.includes(a.id)) return "done";
+  if(G.blocked.includes(a.id) && !G.files.has(a.need)) return "blocked";
+  return "fresh";
+}
+function placeVisible(pl){ return !pl.layer2 || G.files.size>=2; }
+
+function renderDay(){
+  const pl = PLACES.find(p=>p.id===G.sel);
+  const rooms = PLACES.map(p=>{
+    if(!placeVisible(p)) return `<div class="room hidden"></div>`;
+    const acts = placeActs(p);
+    const fresh = acts.filter(a=>actState(a)==="fresh").length;
+    return `<button class="room ${fresh?"":"used"} ${G.sel===p.id?"sel":""}" onclick="pickPlace('${p.id}')">
+      ${fresh?'<span class="dot"></span>':""}<div class="ri">${p.ic}</div><div class="rn">${p.n}</div></button>`;
+  }).join("");
+  let panel = `<div class="selhint">點一個地方</div>`;
+  if(pl){
+    const acts = placeActs(pl);
+    panel = `<div class="selname">${pl.ic}　${pl.n}</div><div class="acts">${acts.map(a=>{
+      const st=actState(a), seen=st!=="fresh";
+      return `<button class="act ${a.fix?"fix":""} ${a.calm?"calm":""} ${seen?"seen":""}"
+        ${seen||G.slots>=a.cost?"":"disabled"} onclick="doAct('${pl.id}','${a.id}')">
+        <span class="cost">${seen?"回想":a.cost+" 格"}</span><span class="an">${a.n}</span></button>`;
+    }).join("")}</div>`;
+  }
+  $("day").innerHTML = `${hud()}<div class="map">${rooms}</div>
+    <div class="sel-panel">${panel}</div>
+    <div class="row"><button class="btn" onclick="showtime(${G.slots>0})">${G.slots>0?"直接去發表":"去發表"}</button></div>
+    ${filesHtml()}`;
+  go("s-day");
+}
+function pickPlace(id){ G.sel = (G.sel===id?null:id); renderDay(); }
+
+function doAct(placeId, actId){
+  const pl = PLACES.find(p=>p.id===placeId), a = pl.acts.find(x=>x.id===actId);
+  const st = actState(a);
+  if(st!=="fresh"){
+    $("scene").innerHTML = `${hud()}<div class="scene replay"><div class="time">回想</div>
+      <div class="txt">${st==="blocked"?a.needSay:a.say}</div></div>
+      <div class="row"><button class="btn ghost" onclick="renderDay()">回到地圖</button></div>`;
+    go("s-scene"); return;
+  }
+  if(G.slots < a.cost) return;
+  const stamp = TIMES[SLOTS-G.slots];
+  G.slots -= a.cost;
+  let gained=[], secret=null;
+
+  G.visited.add(pl.id);
+  if(!G.sC && G.visited.size>=PLACES.length){ G.sC=true; secret="C"; G.files.add("f_map"); gained.push("f_map"); }
+  if(a.board){ G.board++; if(G.board>=3 && !G.sA){ G.sA=true; secret="A"; G.files.add("f_crack"); gained.push("f_crack"); } }
+  if(a.junk) G.junk++;
+
+  const blocked = a.need && !a.fix && !G.files.has(a.need);
+  if(blocked) G.blocked.push(a.id); else G.done.push(a.id);
+  if(!blocked && a.give) a.give.forEach(k=>{ if(!G.files.has(k)){ G.files.add(k); G.gained++; gained.push(k); } });
+  if(a.fix) G.fixed.add(a.fix);
+  if(a.calm){
+    G.stress = Math.max(0, G.stress-a.calm);
+    if(G.hitPeak && G.stress===0 && !G.sD){ G.sD=true; secret="D"; G.files.add("f_calm"); gained.push("f_calm"); }
+  }
+
+  const SECRET_TXT = {
+    A:"你已經站在這面白板前面第三次了。<br>前兩次都沒什麼特別的，多數人看到第二次就不會再看了。<br><br>這一次，你在角落看到一行很小的字：<br><em>「會回頭再看一次的人，最後都會找到東西。<br>你已經比剛開始的自己多知道很多事了——繼續走。」</em><br><br>你不知道那是誰寫的。但你把它記下來了。",
+    C:"你在門口停下來，突然發現一件事：<br>這個學校<em>每一個地方你都去過了</em>。<br><br>電腦教室哪一台比較慢、合作社的飯糰幾點出爐、樓梯間第幾階會響——你全都知道。<br>你不是在找答案的時候才認識這裡的，你是把它走完了。",
+    D:"你從懶骨頭上站起來。<br>剛剛那團壓在胸口的東西不見了。<br><br><em>你剛剛是從滿格走回來的。</em><br>你沒有變聰明，也沒有查到新東西。你只是先照顧了自己，然後才繼續。"
+  };
+  const txt = secret ? SECRET_TXT[secret] + `<br><br><span style="color:var(--dim)">（${a.say}）</span>`
+                     : (blocked ? a.needSay : a.say);
+  $("scene").innerHTML = `${hud()}<div class="scene ${secret?"secret":""}"><div class="time">${stamp}　·　${pl.n}</div>
+    <div class="txt">${txt}</div></div>
+    ${gained.length?`<div class="files" style="margin-top:14px;">${gained.map(k=>
+      `<div class="file new"><div class="fno">${FILES[k].no}</div><div class="ft">${FILES[k].t}</div></div>`).join("")}</div>`:""}
+    <div class="row"><button class="btn" onclick="${G.slots>0?"renderDay()":"showtime(false)"}">${G.slots>0?"繼續":"時間到了，去發表"}</button></div>`;
+  go("s-scene");
+}
+
+/* ── 發表 ── */
+function currentIssues(){
+  const issues = INCIDENTS.filter(i=>!G.fixed.has(i.id));
+  if(G.stress>=3) issues.push(BLANK);
+  return issues;
+}
+function showtime(direct){
+  // 隱藏 B：一整個早上什麼都沒做
+  if(G.slots===SLOTS && !G.sB){
+    G.sB=true; G.files.add("f_still");
+    $("show").innerHTML = `${hud()}<div class="scene secret center"><div class="time">07:40 — 10:00</div>
+      <div class="txt">你哪裡都沒去。<br>你就坐在位子上，看著這個早上一分一分走完。<br><br>
+      坐著坐著，你開始聽見一些平常沒聽過的聲音：<em>電腦教室的風扇在轉、小米在翻紙、走廊上有人在說「資優班」。</em><br><br>
+      你什麼都沒做，但你好像第一次真的待在這個早上裡。</div></div>
+      <div class="files" style="margin-top:14px;"><div class="file new"><div class="fno">${FILES.f_still.no}</div><div class="ft">${FILES.f_still.t}</div></div></div>
+      <div class="row"><button class="btn" onclick="askQ()">下課鐘響了</button></div>`;
+    go("s-show"); return;
+  }
+  const issues = currentIssues();
+  if(issues.length===0){ askQ(true); return; }   // 過關前先問最後一題
+
+  if(direct){
+    $("show").innerHTML = `${hud()}<div class="scene center"><div class="time">10:00</div>
+      <div class="txt">${VAGUE[(G.loop-1)%VAGUE.length]}</div></div>
+      <div class="row"><button class="btn" onclick="askQ()">下課鐘響了</button></div>`;
+    go("s-show"); return;
+  }
+  const known = INCIDENTS.filter(i=>!issues.includes(i) || G.files.has(i.file));
+  const unknown = issues.filter(i=>i.file && !G.files.has(i.file)).length;
+  const blank = issues.includes(BLANK);
+  $("show").innerHTML = `${hud()}<div class="scene center"><div class="time">10:00</div>
+    <div class="txt">燈亮了。你走上去。<br>然後——</div></div>
+    <div class="report"><div class="rh">發表紀錄</div>
+      ${known.map(i=>{ const ok=!issues.includes(i);
+        return `<div class="inc ${ok?"fixed":""}"><span class="ii">${ok?"✓":i.ic}</span><span class="it">${ok?"這一段很順。":i.t}</span></div>`;}).join("")}
+      ${blank?`<div class="inc"><span class="ii">${BLANK.ic}</span><span class="it">${BLANK.t}</span></div>`:""}
+      ${unknown?`<div class="inc"><span class="ii">…</span><span class="it" style="color:var(--dimmer)">還有${unknown>1?"幾":"一"}個地方不太對。你感覺得到，但說不上來是什麼。</span></div>`:""}
+    </div>
+    <div class="row"><button class="btn" onclick="askQ()">下課鐘響了</button></div>`;
+  go("s-show");
+}
+
+/* ── 問題：不顯示類型、選項打亂、不給即時回饋 ── */
+function askQ(final){
+  const q = final ? FINAL_Q : QUESTIONS[(G.loop-1)%QUESTIONS.length];
+  G.curQ = {q:q, opts:shuffle(q.o)};
+  $("ask").innerHTML = `${final?hud():""}<div class="scene center"><div class="time">${final?"09:59　·　燈亮之前":"下課鐘正在響"}</div>
+    <div class="txt">${q.q}</div></div>
+    <div class="choices">${G.curQ.opts.map((o,i)=>`<button class="ch" onclick="answerQ(${i})">${o.t}</button>`).join("")}</div>`;
+  go("s-ask");
+}
+function answerQ(i){
+  const q = G.curQ.q, o = G.curQ.opts[i];
+  G.answers.push({loop:G.loop, q:q.q, a:o.t, k:o.k, final:!!q.final});
+  if(q.final){
+    if(o.k==="f") G.perfectWord = true;
+    perfectShow(); return;
+  }
+  if(o.k==="f"){ G.stress = Math.min(3, G.stress+1); if(G.stress>=3) G.hitPeak = true; }
+  endLoop();
+}
+function endLoop(){
+  // 這個畫面不放 HUD：壓力變化要到下一輪才看得到
+  $("ask").innerHTML = `<div class="scene center"><div class="time">07:40</div>
+    <div class="txt">你睜開眼睛。牆上的鐘還是七點四十分。</div></div>
+    ${filesHtml()}
+    <div class="row"><button class="btn" onclick="newLoop()">再過一次</button>
+    <button class="btn ghost" onclick="ending(false)">不試了</button></div>`;
+  window.scrollTo({top:0});
+}
+function perfectShow(){
+  $("show").innerHTML = `${hud()}<div class="scene center"><div class="time">10:00</div>
+    <div class="txt">燈亮了。你走上去。<br><br>投影片一點就開了。<br>你講到第三週的時候，指著那個問號說：「這筆數據我還不確定。」<br>結論那頁，小米講得比你們練習時還要好。</div></div>
+    <div class="row"><button class="btn" onclick="ending(true)">下課鐘響了</button></div>`;
+  go("s-show");
+}
+
+/* ── 結局 ── */
+function ending(win){
+  const ans = G.answers;
+  const nG = ans.filter(x=>x.k==="g").length, nE = ans.filter(x=>x.k==="e").length, nF = ans.filter(x=>x.k==="f").length;
+  let close = "";
+  if(!ans.length) close = "你還沒有回答過任何問題。這個遊戲真正想給你看的東西，是在失敗之後才會出現的。";
+  else if(nF===0) close = "每一次重來，你都沒有把原因放在「我不夠好」或「別人不好」上。你可能沒發現，正是這些選擇讓你的壓力一直沒有滿。";
+  else if(nF > nG + nE) close = "你注意到了嗎？你常常先把原因放在「我不夠好」或「別人不好」。很多很會讀書的人都會這樣想。下一次，可以試著多問自己一句：「還有沒有別的可能？」";
+  else close = "三種想法你都有過。它們本來就會輪流出現，重要的是，後來你還是走回了往前找的那一條。";
+  if(nE>0) close += "<br><br>你有 " + nE + " 次誠實說出自己的感受——難過、累、害怕。這不是軟弱。看得見自己的情緒，才有辦法照顧它。";
+  if(win && G.perfectWord) close += "<br><br>上台前，你對自己說「一定要完美」。可是今天的發表其實不完美——那個問號還留在圖表上。大家記得的，反而是你的誠實。";
+
+  const mainFound = MAIN_FILES.filter(k=>G.files.has(k)).length;
+  const badge = (on,ic,name)=>`<div class="badge ${on?"got":""}"><div class="bi">${on?ic:"？"}</div><div class="bn">${on?name:"？？？"}</div></div>`;
+  const tagName = {g:"往前找問題", e:"承認感受", f:"固定歸因"};
+
+  $("end").innerHTML = `
+    <div class="endwrap"><div class="kicker">${win?"LOOP END":"LOOP PAUSED"}</div>
+      <div class="big" style="margin-top:10px;">${win?"下課鐘響完了":"你放下了那個早上"}</div></div>
+    <div class="scene"><div class="txt">${win
+      ? "這一次，下課鐘響完之後，時間繼續往前走了。<br>台下有人在拍手。阿凱在第一排拍得最大聲。"
+      : "你停在這裡了。那個早上還在原地。<br><br>沒關係。休息也是一種選擇。你已經比第一次多知道很多事了，想回來的時候，它會等你。"}</div></div>
+    ${win?`
+    <div class="panel"><h2>散場之後</h2>
+      <div class="msgs">
+        <div class="msg"><div class="who">爸爸媽媽</div><div class="mx">你講得好清楚，我們都聽懂了！</div></div>
+        <div class="msg"><div class="who">小米</div><div class="mx">下次我們再一起做吧，這次換我當組長喔。</div></div>
+        <div class="msg"><div class="who">阿凱</div><div class="mx">原來葉子會「流汗」喔？好酷！</div></div>
+        <div class="msg"><div class="who">評審</div><div class="mx">你說「還不確定」的那一段，是我今天聽到最像科學家的一句話。</div></div>
+      </div>
+      <p class="solid" style="margin-top:16px;">你忍不住問：「那張投影片……還有那個數據，你們有注意到嗎？」</p>
+      <div class="msgs">
+        <div class="msg"><div class="who">爸爸媽媽</div><div class="mx">哪一張？我們只記得你講得很認真。</div></div>
+        <div class="msg"><div class="who">阿凱</div><div class="mx">我只記得葉子的照片很漂亮。</div></div>
+        <div class="msg"><div class="who">林老師</div><div class="mx">我記得的是，你讓小米講結論了。</div></div>
+      </div>
+      <p class="solid" style="margin-top:16px;">你在腦中重播了 ${G.loop} 次的那些細節——檔案、數據、評審的問題、小米的沉默、後排的笑聲——<b>台下的人一次都沒有重播。</b></p>
+      <p class="solid">他們記得的是：你上台了，你說了實話，你讓別人也有機會發光。</p>
+    </div>
+    <div class="panel"><h2>「資優」不是一個要守住的分數</h2>
+      <p class="solid">你一直以為，資優生就要什麼都會、不能出錯。</p>
+      <p class="solid">其實大家喜歡你的研究，不是因為它完美，而是因為你真的很好奇。</p>
+      <p class="solid" style="font-family:var(--serif);font-size:1.08rem;line-height:2.1;margin-top:14px;"><em>
+      我不是什麼都會。我是那個會一直問下去的人。<br>
+      那些重來、那些刪掉又放回去的數據、那句「我還不知道」——只有我知道它們有多難。<br>
+      我為那個部分，替自己拍個手。</em></p>
+    </div>`:""}
+    <div class="stats">
+      <div class="stat g"><div class="sv">${G.loop}</div><div class="sl">循環次數</div></div>
+      <div class="stat"><div class="sv">${mainFound}/6</div><div class="sl">查到的情報</div></div>
+      <div class="stat r"><div class="sv">${G.junk}</div><div class="sl">白跑的行程</div></div>
+      <div class="stat b"><div class="sv">${nE}</div><div class="sl">說出感受</div></div>
+    </div>
+    ${ans.length?`
+    <div class="panel"><h2>下課鐘響的時候，你說過這些話</h2>
+      <div class="legend">現在可以揭曉了：每個選項背後，其實都是一種想法——
+        <span class="tag g">往前找問題</span><span class="tag e">承認感受</span><span class="tag f">固定歸因</span></div>
+      ${ans.map(x=>`<div class="qrow"><div class="ql">${x.final?"上台前":"第 "+x.loop+" 輪"}　${x.q}</div>
+        <div class="qa"><span class="tag ${x.k}">${tagName[x.k]}</span>${x.a}</div></div>`).join("")}
+      <p class="solid" style="margin-top:14px;">${close}</p>
+    </div>`:""}
+    ${G.sA?`<div class="panel secretp"><div class="kicker">BONUS · 你去了第三次</div><h2 style="margin-top:6px;">班級白板</h2>
+      <p class="solid">同一面白板，你看了三次。前兩次你覺得沒什麼特別的——多數人看到第二次就不會再看了。</p>
+      <p class="solid"><b>重複本身不會讓你變強，但重複而且有在看，會。</b>你剛好是那種會再看一次的人。</p></div>`:""}
+    ${G.sB?`<div class="panel secretp"><div class="kicker">BONUS · 你什麼都沒做</div><h2 style="margin-top:6px;">空白的那個早上</h2>
+      <p class="solid">你有一輪整個早上都沒有動。在一個「要趕快找出問題」的遊戲裡，這需要一點膽子。</p>
+      <p class="solid"><b>有時候看不清楚，不是因為不夠快，而是因為一直在動。</b>停下來也是一種行動。</p></div>`:""}
+    ${G.sC?`<div class="panel secretp"><div class="kicker">BONUS · 你走完了整個學校</div><h2 style="margin-top:6px;">每一個地方</h2>
+      <p class="solid">有幾個地方跟發表會完全沒關係——操場、合作社、樓梯間。你還是去了，而且每一個都去過。</p>
+      <p class="solid"><b>要知道哪裡沒有東西，也只能一個一個去看。</b>會去看「沒用的地方」的人，通常也是最後找到東西的人。</p></div>`:""}
+    ${G.sD?`<div class="panel secretp"><div class="kicker">BONUS · 你從滿格走回來了</div><h2 style="margin-top:6px;">先照顧自己，再繼續</h2>
+      <p class="solid">你的壓力曾經滿到三格。那時候你一上台一定會空白，而你沒有硬撐。</p>
+      <p class="solid"><b>在時間不夠的時候決定停下來，需要判斷力。這不是偷懶。</b></p></div>`:""}
+    ${(G.sA&&G.sB&&G.sC&&G.sD)?`<div class="panel secretp" style="border-color:var(--gold)"><div class="kicker">BONUS · 全部找到了</div>
+      <p class="solid" style="font-family:var(--serif);font-size:1.05rem;line-height:2;">多看一次、停下來、走完全部、把自己拉回來。<br>
+      這個遊戲沒有任何地方提示過它們——你是自己試出來的。<b>這就是研究。</b></p></div>`:""}
+    <div class="panel"><h2>隱藏的四件事</h2>
+      <div class="badges">${badge(G.sA,"📋","多看一次")}${badge(G.sB,"⏸️","停下來")}${badge(G.sC,"🗺️","走完全部")}${badge(G.sD,"💛","把自己拉回來")}</div>
+    </div>
+    <div class="row"><button class="btn ghost" onclick="location.reload()">從頭再玩一次</button></div>`;
+  go("s-end");
+}
+</script>
+</body>
+</html>
