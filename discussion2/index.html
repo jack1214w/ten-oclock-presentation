@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>失敗討論區・第二章</title>
+<style>
+:root{
+  --bg:#FBF7F0; --card:#FFFFFF; --ink:#2B2638; --dim:#6B6580; --line:#E6DFD3;
+  --accent:#C8862A; --accent-soft:#F6E7CF; --a:#3D7DCA; --b:#2E9E6E; --c:#B5579A;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.screen{display:none}.screen.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--dim);font-size:.95rem}
+.crumbs{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+.crumb{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:.85rem}
+.crumb.now{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.tag{display:inline-block;color:var(--accent);font-weight:700;letter-spacing:.15em;font-size:.95rem}
+.ctx{margin-top:18px;color:var(--dim);font-size:1.15rem}
+h1{font-family:var(--serif);font-size:2.3rem;line-height:1.45;margin:8px 0 6px}
+.big-title{font-family:var(--serif);font-size:3rem;margin:10px 0}
+.opts{display:grid;gap:14px;margin-top:22px}
+.opt{display:flex;align-items:center;gap:16px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px 18px}
+.letter{flex:0 0 52px;height:52px;border-radius:12px;color:#fff;font-weight:800;font-size:1.6rem;display:flex;align-items:center;justify-content:center}
+.L0{background:var(--a)}.L1{background:var(--b)}.L2{background:var(--c)}
+.otext{flex:1;font-size:1.45rem;font-weight:600}
+.counter{display:flex;align-items:center;gap:6px}
+.counter button{font:inherit;width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:1.5rem;cursor:pointer;color:var(--ink)}
+.counter button:hover{border-color:var(--accent)}
+.counter input{width:70px;height:46px;text-align:center;font:inherit;font-size:1.5rem;font-weight:700;border:1px solid var(--line);border-radius:12px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:24px}
+.row.center{justify-content:center}
+.btn{font:inherit;font-weight:700;font-size:1.15rem;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 30px;cursor:pointer}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+.btn.small{font-size:.95rem;padding:7px 16px}
+.total{color:var(--dim);font-size:1.05rem}
+.tip{margin-top:26px;border:1px dashed var(--line);border-radius:12px;background:#fff8}
+.tip summary{cursor:pointer;padding:10px 16px;color:var(--dim);font-size:.95rem}
+.tip div{padding:0 16px 12px;color:var(--dim)}
+/* result */
+.res{display:grid;gap:12px;margin-top:22px}
+.bar{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 16px}
+.bar.win{border-color:var(--accent);box-shadow:0 4px 18px rgba(200,134,42,.18)}
+.bar .head{display:flex;align-items:center;gap:12px}
+.bar .letter{flex-basis:40px;height:40px;font-size:1.2rem}
+.bar .otext{font-size:1.25rem}
+.bar .num{font-weight:800;font-size:1.3rem;white-space:nowrap}
+.track{height:14px;background:#F0EAE0;border-radius:99px;margin-top:10px;overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .8s ease}
+.F0{background:var(--a)}.F1{background:var(--b)}.F2{background:var(--c)}
+.ask{margin-top:10px;font-size:1.15rem;padding-left:14px;border-left:3px solid var(--accent)}
+.bar:not(.win) .ask{font-size:1rem;color:var(--dim);border-left-color:var(--line)}
+.notice{margin-top:18px;background:var(--accent-soft);border-radius:12px;padding:12px 16px;font-size:1.1rem}
+.alt{margin-top:14px;color:var(--dim);font-size:.95rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* intro & end */
+.intro p{font-size:1.2rem;color:var(--dim);max-width:780px}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.rule{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.rule b{display:block;font-size:1.1rem;margin-bottom:4px}
+.path{display:grid;gap:12px;margin-top:20px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.step .q{font-weight:700;font-size:1.1rem}
+.step .meta{color:var(--dim);font-size:.95rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{border-radius:8px;padding:2px 10px;font-size:.95rem;background:#F3EEE6}
+.chip.win{background:var(--accent-soft);font-weight:700}
+.card-act{margin-top:24px;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:20px}
+.card-act .fill-line{font-family:var(--serif);font-size:1.6rem;margin:10px 0}
+.ver{text-align:center;color:#B0A99B;font-size:.75rem;margin-top:40px}
+#errbar{display:none;position:fixed;left:0;right:0;top:0;background:#a33;color:#fff;padding:8px 14px;z-index:99}
+@media (max-width:700px){
+  h1{font-size:1.6rem}.big-title{font-size:2rem}
+  .otext{font-size:1.1rem}.opt{flex-wrap:wrap}
+  .rules{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="errbar"></div>
+<div class="wrap">
+
+<div class="screen on" id="s-intro">
+  <div class="intro">
+    <span class="tag">《三點的紙橋》之後</span>
+    <div class="big-title">失敗討論區・第二章</div>
+    <p>每一題由全班一起選。老師數完舉手的人數後，<b>大部分人選的方向</b>會決定下一個問題是什麼——所以每個班級走出來的討論，都不一樣。</p>
+    <div class="rules">
+      <div class="rule"><b>沒有標準答案</b>每個選項都是真的有人會這樣想的想法。</div>
+      <div class="rule"><b>選你真的這樣想的</b>不是選「老師可能想聽的」。</div>
+      <div class="rule"><b>少數也很重要</b>選比較少人選的同學，常常有最特別的理由。</div>
+    </div>
+    <div class="row"><button class="btn" onclick="start()">開始討論</button></div>
+  </div>
+</div>
+
+<div class="screen" id="s-vote"><div id="vote"></div></div>
+<div class="screen" id="s-result"><div id="result"></div></div>
+<div class="screen" id="s-end"><div id="end"></div></div>
+
+<div class="ver">失敗討論區・第二章 v1.0　·　搭配《三點的紙橋》使用</div>
+</div>
+
+<script>
+window.onerror = function(msg, src, line){
+  var b = document.getElementById("errbar");
+  b.style.display = "block";
+  b.textContent = "⚠️ 程式發生錯誤（v1.0）：" + msg + "（第 " + line + " 行）";
+};
+
+/* ═══════════ 討論樹 ═══════════
+   每一題三個選項；ask = 揭曉後，對選這個選項的同學追問的話
+   next = 這個選項是多數時，下一題要去哪裡 */
+const NODES = {
+  start:{tag:"第一站 · 回到那個早上", ctx:"玩完《三點的紙橋》，回想主角一直到比賽前一晚才開始做橋。",
+    q:"你覺得主角為什麼一直拖著不開始做？",
+    tip:"暖身題，三個方向都合理。可以請少數選項的同學先說，再問大家：你自己拖延的時候，比較像哪一種？",
+    o:[
+      {t:"覺得自己不用練也可以", ask:"「不用練也可以」這個想法，是從哪裡來的？", next:"talent"},
+      {t:"怕做了還是做不好", ask:"還沒開始做，為什麼就會覺得做不好？", next:"fear"},
+      {t:"覺得這個比賽不重要", ask:"如果比賽真的不重要，主角輸了為什麼會那麼在意？", next:"excuse"}]},
+
+  talent:{tag:"第二站 · 天分", ctx:"小晴的橋撐了 5 公斤，大家都說她超強。",
+    q:"你覺得小晴是天生比較會，還是練出來的？",
+    tip:"不用急著否定「天分」。重點是讓學生發現：我們常常只看到別人的結果，看不到過程。",
+    o:[
+      {t:"天生比較會", ask:"如果知道她其實塌了七次，你的想法會改變嗎？", next:"effort"},
+      {t:"練出來的", ask:"那為什麼一開始，主角會覺得她是天生比較會？", next:"compare"},
+      {t:"兩個都有", ask:"天分和練習，哪一個是你可以決定的？", next:"effort"}]},
+
+  fear:{tag:"第二站 · 害怕", ctx:"主角心裡那句更小聲的話：「如果我認真做了還是輸，那不就證明我不夠聰明？」",
+    q:"「認真做了還是輸」和「沒認真做就輸」，哪一個比較難受？",
+    tip:"本章核心題。很多資優生會選第一個，這正是他們不敢努力的原因；請不要評價對錯，先讓學生說出感受。",
+    o:[
+      {t:"認真做了還是輸，比較難受", ask:"為什麼認真了還輸會更難受？那種難受在說什麼？", next:"rank"},
+      {t:"沒認真做就輸，比較難受", ask:"沒認真做的那種難受，是後悔，還是別的？", next:"effort"},
+      {t:"一樣難受", ask:"既然一樣難受，那哪一種比較能讓你學到東西？", next:"help"}]},
+
+  excuse:{tag:"第二站 · 藉口", ctx:"橋塌掉之後，主角說：「我本來就不擅長這種東西。我又沒有認真做。」",
+    q:"「我又沒有認真做」這句話，保護了主角什麼？",
+    tip:"引導學生看見「自我設限」：先不努力，輸了就有藉口。可以問學生有沒有說過類似的話（考試、比賽、才藝）。",
+    o:[
+      {t:"保護他的面子", ask:"面子和學會一件事，哪一個比較重要？為什麼這麼難選？", next:"help"},
+      {t:"保護「我很聰明」的感覺", ask:"如果一個人需要很努力，他就不聰明了嗎？", next:"effort"},
+      {t:"讓他不用面對真正的失敗", ask:"「真正的失敗」是什麼？它真的有那麼可怕嗎？", next:"rank"}]},
+
+  effort:{tag:"第三站 · 努力", ctx:"主角要在兩個不同的早上都練習摺紙柱，手感才會到 2。",
+    q:"「需要很努力才做得到」，代表什麼？",
+    tip:"呼應成長型思維。可以舉學生熟悉的例子：學騎腳踏車、練樂器、打電動破關。",
+    o:[
+      {t:"代表我不夠聰明", ask:"你學騎腳踏車的時候摔了很多次，那時候會覺得自己笨嗎？", next:"talk"},
+      {t:"代表我在學新的東西", ask:"你最近一次「在學新東西」的感覺是什麼時候？", next:"act"},
+      {t:"代表這件事真的很難", ask:"一件很難的事做到了，跟一件簡單的事做到了，感覺一樣嗎？", next:"talk"}]},
+
+  compare:{tag:"第三站 · 比較", ctx:"主角在資優班教室寫下：「今天的我比第一次的我多會了什麼。」",
+    q:"跟小晴比、跟昨天的自己比，哪一種比較會讓你想繼續？",
+    tip:"兩種比較都有用處，重點是覺察「哪一種比較讓我想放棄」。若多數選「看情況」，可以請他們舉例。",
+    o:[
+      {t:"跟小晴比，有對手才有動力", ask:"如果一直比不過她，你還會有動力嗎？", next:"talk"},
+      {t:"跟昨天的自己比", ask:"你今天比昨天的自己，多會了什麼？", next:"act"},
+      {t:"看情況", ask:"什麼情況適合跟別人比？什麼情況比較適合跟自己比？", next:"talk"}]},
+
+  help:{tag:"第三站 · 開口", ctx:"阿伯說：「當然好啊，你是第一個來問的。」他教的方法只要三十秒。",
+    q:"你上一次想問人卻沒開口，是因為什麼？",
+    tip:"資優生常覺得「應該自己想出來」。可以請老師分享自己向別人請教的經驗。",
+    o:[
+      {t:"怕被覺得很笨", ask:"你被別人問問題的時候，會覺得對方很笨嗎？", next:"talk"},
+      {t:"不想麻煩別人", ask:"如果有人來問你，你會覺得被麻煩嗎？", next:"act"},
+      {t:"想自己想出來", ask:"自己想出來和問了才會，哪一個學得比較快？哪一個比較有成就感？", next:"act"}]},
+
+  rank:{tag:"第三站 · 第四名", ctx:"主角的橋撐到 4.2 公斤，比第一次多了 4 公斤。小晴第一名，主角第四名。",
+    q:"主角第四名。你覺得這算成功嗎？",
+    tip:"本章最重要的一題，不要給答案。若學生堅持「沒得獎就是輸」，可以追問：那你覺得主角這一天，什麼都沒有得到嗎？",
+    o:[
+      {t:"不算，沒得獎就是輸", ask:"那主角這一天，什麼都沒有得到嗎？", next:"talk"},
+      {t:"算，比自己進步很多", ask:"如果全班只看名次，會有人知道他進步了嗎？", next:"act"},
+      {t:"一半一半", ask:"哪一半算成功？哪一半不算？", next:"talk"}]},
+
+  talk:{tag:"第四站 · 換一句話", ctx:"主角最後說：「我不是一下就會的人。我是那個願意塌七次的人。」",
+    q:"下次又想說「我又沒認真做」的時候，你可以換成哪一句？",
+    tip:"三句都是誠實面對的說法。也可以請學生寫下自己的版本。",
+    o:[
+      {t:"「我還在練。」", ask:"「還在」這兩個字，跟「我不會」差在哪裡？", next:"end"},
+      {t:"「我怕輸，但我想試試看。」", ask:"說出「我怕」，會讓你比較輕鬆還是比較緊張？", next:"end"},
+      {t:"「我需要有人教我。」", ask:"你身邊有誰，是你可以去問的？", next:"end"}]},
+
+  act:{tag:"第四站 · 第一步", ctx:"主角的隱藏成就之一：「先做一個醜的版本。」",
+    q:"你一直拖著沒開始的一件事，第一步可以是什麼？",
+    tip:"把討論拉回學生真實生活：請每個人在心裡想一件正在拖延的事（作業、練琴、專題）。",
+    o:[
+      {t:"先做一個醜的版本", ask:"你的「醜的版本」可以有多醜？五分鐘做得出來嗎？", next:"end"},
+      {t:"先問一個會的人", ask:"你今天就可以去問誰？", next:"end"},
+      {t:"每天只練一點點", ask:"「一點點」是多少？十分鐘？三題？", next:"end"}]}
+};
+const LETTERS = ["A","B","C"];
+
+/* ═══════════ 狀態 ═══════════ */
+const S = {cur:"start", counts:[0,0,0], path:[]};
+function $(id){ return document.getElementById(id); }
+function go(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on")); $(id).classList.add("on"); window.scrollTo({top:0}); }
+
+function crumbs(){
+  const done = S.path.map(p=>`<span class="crumb">${NODES[p.id].tag.split(" · ")[1]}</span>`).join("");
+  const now = S.cur!=="end" ? `<span class="crumb now">${NODES[S.cur].tag.split(" · ")[1]}</span>` : "";
+  return `<div class="top"><div class="crumbs">${done}${now}</div>
+    ${S.path.length?`<button class="btn ghost small" onclick="back()">← 上一題</button>`:""}</div>`;
+}
+
+function start(){ S.cur="start"; S.path=[]; S.counts=[0,0,0]; renderVote(); }
+
+function renderVote(){
+  const n = NODES[S.cur];
+  $("vote").innerHTML = `${crumbs()}
+    <div class="ctx">${n.ctx}</div>
+    <span class="tag" style="margin-top:14px;">${n.tag}</span>
+    <h1>${n.q}</h1>
+    <div class="opts">${n.o.map((o,i)=>`
+      <div class="opt"><div class="letter L${i}">${LETTERS[i]}</div><div class="otext">${o.t}</div>
+        <div class="counter"><button onclick="bump(${i},-1)" aria-label="減一">−</button>
+          <input type="number" min="0" id="c${i}" value="${S.counts[i]}" oninput="setCount(${i},this.value)" aria-label="${LETTERS[i]} 的人數">
+          <button onclick="bump(${i},1)" aria-label="加一">＋</button></div></div>`).join("")}</div>
+    <div class="row"><button class="btn" id="reveal" onclick="reveal()">揭曉結果</button>
+      <span class="total" id="total"></span></div>
+    <details class="tip"><summary>教師提示（點開）</summary><div>${n.tip}</div></details>`;
+  updateTotal();
+  go("s-vote");
+}
+function bump(i,d){ S.counts[i]=Math.max(0,S.counts[i]+d); $("c"+i).value=S.counts[i]; updateTotal(); }
+function setCount(i,v){ S.counts[i]=Math.max(0,parseInt(v,10)||0); updateTotal(); }
+function updateTotal(){
+  const t = S.counts.reduce((a,b)=>a+b,0);
+  $("total").textContent = t ? `目前共 ${t} 票` : "請輸入各選項舉手的人數";
+  $("reveal").disabled = t===0;
+}
+
+function reveal(){
+  const n = NODES[S.cur], c = S.counts.slice(), t = c.reduce((a,b)=>a+b,0);
+  const max = Math.max(...c), winners = c.map((v,i)=>v===max?i:-1).filter(i=>i>=0);
+  const tie = winners.length>1;
+  $("result").innerHTML = `${crumbs()}
+    <span class="tag" style="margin-top:14px;">${n.tag}</span>
+    <h1>${n.q}</h1>
+    <div class="res">${n.o.map((o,i)=>{
+      const pct = t? Math.round(c[i]/t*100):0, win = winners.includes(i);
+      return `<div class="bar ${win?"win":""}"><div class="head"><div class="letter L${i}">${LETTERS[i]}</div>
+        <div class="otext">${o.t}</div><div class="num">${c[i]} 人 · ${pct}%</div></div>
+        <div class="track"><div class="fill F${i}" style="width:0" data-w="${pct}"></div></div>
+        ${c[i]>0?`<div class="ask">${win?"想問選這個的同學：":"也想聽聽選 "+LETTERS[i]+" 的同學："}${o.ask}</div>`:""}</div>`;
+    }).join("")}</div>
+    ${tie
+      ? `<div class="notice">平手了！請大家說說理由，再由老師決定要往哪個方向討論。</div>
+         <div class="row">${winners.map(i=>`<button class="btn" onclick="next(${i},true)">往 ${LETTERS[i]} 的方向</button>`).join("")}</div>`
+      : `<div class="row"><button class="btn" onclick="next(${winners[0]},false)">往下討論 →</button></div>
+         <div class="alt">想改走別的方向？${n.o.map((o,i)=>i===winners[0]?"":`<button class="btn ghost small" onclick="next(${i},true)">改走 ${LETTERS[i]}</button>`).join("")}</div>`}`;
+  go("s-result");
+  requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll(".fill").forEach(f=>f.style.width=f.dataset.w+"%"),60));
+}
+
+function next(i, teacherPick){
+  S.path.push({id:S.cur, counts:S.counts.slice(), pick:i, teacherPick:teacherPick});
+  S.cur = NODES[S.cur].o[i].next;
+  S.counts = [0,0,0];
+  if(S.cur==="end") renderEnd(); else renderVote();
+}
+function back(){
+  const last = S.path.pop();
+  if(!last) return;
+  S.cur = last.id; S.counts = last.counts;
+  renderVote();
+}
+
+function renderEnd(){
+  $("end").innerHTML = `${crumbs()}
+    <span class="tag" style="margin-top:14px;">終點 · 我們這一班走過的路</span>
+    <h1>今天全班一起走過了 ${S.path.length} 個問題</h1>
+    <p style="color:var(--dim);font-size:1.1rem;">別班可能走了完全不同的路。沒有哪一條比較對——每一條，都是一種面對失敗的方式。</p>
+    <div class="path">${S.path.map((p,k)=>{
+      const n = NODES[p.id], t = p.counts.reduce((a,b)=>a+b,0);
+      return `<div class="step"><div class="meta">${k+1}．${n.tag.split(" · ")[1]}${p.teacherPick?"（老師選擇方向）":""}</div>
+        <div class="q">${n.q}</div>
+        <div class="chips">${n.o.map((o,i)=>`<span class="chip ${i===p.pick?"win":""}">${LETTERS[i]}　${o.t}　${p.counts[i]} 人${t?"（"+Math.round(p.counts[i]/t*100)+"%）":""}</span>`).join("")}</div></div>`;
+    }).join("")}</div>
+    <div class="card-act">
+      <span class="tag">最後一件事 · 寫在卡片上</span>
+      <div class="fill-line">我一直拖著的一件事，第一步是：________</div>
+      <p style="color:var(--dim);margin:0;">不用署名。寫完貼在白板上，看看大家寫了什麼。</p>
+    </div>
+    <div class="row"><button class="btn ghost" onclick="back()">← 回到上一題</button>
+      <button class="btn ghost" onclick="start()">重新開始（換一班）</button></div>`;
+  go("s-end");
+}
+
+/* 鍵盤：投影時方便用 */
+document.addEventListener("keydown", e=>{
+  if(e.target.tagName==="INPUT") return;
+  if(!$("s-vote").classList.contains("on")) return;
+  const k = e.key.toLowerCase();
+  if(k==="a"||k==="1") bump(0,1);
+  if(k==="b"||k==="2") bump(1,1);
+  if(k==="c"||k==="3") bump(2,1);
+  if(k==="enter" && !$("reveal").disabled) reveal();
+});
+</script>
+</body>
+</html>

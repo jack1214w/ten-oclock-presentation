@@ -6,6 +6,7 @@
 - **遊戲：** https://jack1214w.github.io/ten-oclock-presentation/game/
 - **失敗討論區（老師投影用）：** https://jack1214w.github.io/ten-oclock-presentation/discussion/
 - **第二章：三點的紙橋：** https://jack1214w.github.io/ten-oclock-presentation/chapter2/
+- **失敗討論區・第二章（老師投影用）：** https://jack1214w.github.io/ten-oclock-presentation/discussion2/
 
 更新方式：修改上一層資料夾的 `十點的發表會.html` 或 `失敗討論區.html` 後，執行 `bash deploy.sh`。
 
